@@ -6,14 +6,19 @@ import {
   FaCar,
   FaAward,
   FaCalendarAlt,
+  FaCheck,
   FaCog,
   FaCrosshairs,
   FaCut,
+  FaExpand,
   FaFacebookF,
-  FaHandHoldingHeart,
   FaHome,
+  FaIndustry,
   FaInstagram,
+  FaLayerGroup,
+  FaLeaf,
   FaLinkedinIn,
+  FaCommentDots,
   FaPhoneAlt,
   FaTint,
   FaSearch,
@@ -21,6 +26,7 @@ import {
   FaShoppingBag,
   FaStar,
   FaStore,
+  FaSun,
   FaTag,
   FaTiktok,
   FaTruck,
@@ -33,15 +39,77 @@ import { IoClose } from "react-icons/io5";
 const A = "/assets/images/";
 
 const navLinks = [
-  { label: "Accueil", href: "#top", active: true },
-  { label: "Stickers", href: "#solutions" },
-  { label: "Matières & Finitions", href: "#finitions" },
-  { label: "Applications", href: "#besoins" },
-  { label: "Comment ça marche ?", href: "#techno" },
-  { label: "Tarifs", href: "#configurer" },
-  { label: "À propos", href: "#footer" },
-  { label: "Contact", href: "#contact" },
+  { label: "Accueil", href: "/" },
+  { label: "Nos solutions", href: "/solutions" },
+  { label: "Matières & Finitions", href: "/matieres-finitions" },
+  { label: "Applications", href: "/#besoins" },
+  { label: "Comment ça marche ?", href: "/#techno" },
+  { label: "Tarifs", href: "/#configurer" },
+  { label: "À propos", href: "/#footer" },
+  { label: "Contact", href: "/#contact" },
 ];
+
+function normalizePath(pathname) {
+  const clean = pathname.replace(/\/+$/, "") || "/";
+  return clean;
+}
+
+function usePath() {
+  const [path, setPath] = useState(() => normalizePath(window.location.pathname));
+
+  useEffect(() => {
+    const onChange = () => setPath(normalizePath(window.location.pathname));
+    window.addEventListener("popstate", onChange);
+    return () => window.removeEventListener("popstate", onChange);
+  }, []);
+
+  return path;
+}
+
+function navigate(to) {
+  const url = new URL(to, window.location.origin);
+  const nextPath = normalizePath(url.pathname);
+  const currentPath = normalizePath(window.location.pathname);
+  const next = `${url.pathname}${url.search}${url.hash}`;
+
+  if (nextPath === currentPath) {
+    window.history.pushState({}, "", next);
+    if (url.hash) {
+      document.getElementById(url.hash.slice(1))?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo(0, 0);
+    }
+    return;
+  }
+
+  window.history.pushState({}, "", next);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
+function isNavActive(href, path) {
+  if (href === "/") return path === "/";
+  if (href === "/solutions") return path === "/solutions";
+  if (href === "/matieres-finitions") return path === "/matieres-finitions";
+  return false;
+}
+
+function AppLink({ href, className = "", children, onClick, ...rest }) {
+  return (
+    <a
+      href={href}
+      className={className}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        e.preventDefault();
+        navigate(href);
+        onClick?.(e);
+      }}
+      {...rest}
+    >
+      {children}
+    </a>
+  );
+}
 
 const solutions = [
   {
@@ -106,6 +174,69 @@ const finishes = [
   { name: "Effet métallique", tone: "metal" },
 ];
 
+const pageFinishes = [
+  { name: "Brillant", tone: "gloss" },
+  { name: "Mat", tone: "matte" },
+  { name: "Blanc sélectif", tone: "white" },
+  { name: "Vernis sélectif", tone: "varnish" },
+  { name: "Laminage brillant", tone: "lam-gloss" },
+  { name: "Laminage mat", tone: "lam-matte" },
+  { name: "Effet holographique", tone: "holo" },
+  { name: "Effet métallisé", tone: "metal" },
+];
+
+const materials = [
+  {
+    name: "Vinyle brillant",
+    traits: "Couleurs éclatantes • finition lumineuse",
+    ideal: "Idéal pour packaging, vitrines et promotion",
+    image: "die-cut.png",
+    icon: FaStar,
+  },
+  {
+    name: "Vinyle mat",
+    traits: "Aspect élégant • peu de reflets",
+    ideal: "Idéal pour marques premium et décoration",
+    image: "embossed.png",
+    icon: FaLayerGroup,
+  },
+  {
+    name: "Transparent",
+    traits: "Effet sans fond • rendu moderne",
+    ideal: "Idéal pour bouteilles, vitrines et supports clairs",
+    image: "circle.png",
+    icon: FaTint,
+  },
+  {
+    name: "Vinyle blanc",
+    traits: "Support polyvalent • excellente opacité",
+    ideal: "Pour stickers et étiquettes du quotidien",
+    image: "sample-pack.jpg",
+    icon: FaTag,
+  },
+  {
+    name: "Holographique",
+    traits: "Effet irisé • rendu spectaculaire",
+    ideal: "Pour événements, édition limitée et premium",
+    image: "holographic.png",
+    icon: FaAward,
+  },
+  {
+    name: "Films techniques",
+    traits: "Repositionnable • dépoli • microperforé",
+    ideal: "Pour usages spécifiques et signalétique",
+    image: "dtf.jpg",
+    icon: FaCog,
+  },
+];
+
+const matieresTrust = [
+  { label: "Supports adaptés à chaque usage", icon: FaLayerGroup },
+  { label: "Finitions premium au choix", icon: FaStar },
+  { label: "Rendu HD & couleurs fidèles", icon: FaCrosshairs },
+  { label: "Conseil matière sur mesure", icon: FaCommentDots },
+];
+
 const needs = [
   { label: "Mon packaging", icon: FaBoxOpen },
   { label: "Mon véhicule", icon: FaCar },
@@ -116,27 +247,108 @@ const needs = [
   { label: "Mon événement", icon: FaCalendarAlt },
 ];
 
+const usageSolutions = [
+  {
+    title: "Packaging",
+    desc: "Valorisez vos produits avec des stickers premium pour emballages et coffrets.",
+    image: "sample-pack.jpg",
+    icon: FaBoxOpen,
+  },
+  {
+    title: "Vitrine",
+    desc: "Attirez l'œil avec des adhésifs vitrine impactants pour vos promos et messages.",
+    image: "benefit-1.png",
+    icon: FaStore,
+  },
+  {
+    title: "Véhicule",
+    desc: "Habillage partiel ou total, résistant aux UV et aux intempéries.",
+    image: "review-1.png",
+    icon: FaCar,
+  },
+  {
+    title: "Étiquettes",
+    desc: "Étiquettes produits, pots et flacons avec découpe précise et finitions soignées.",
+    image: "circle.png",
+    icon: FaTag,
+  },
+  {
+    title: "Décoration",
+    desc: "Stickers muraux et déco intérieure pour un rendu net et durable.",
+    image: "holographic.png",
+    icon: FaHome,
+  },
+  {
+    title: "Événement",
+    desc: "Badges, goodies et signalétique pour vos salons, lancements et activations.",
+    image: "hero-tent.png",
+    icon: FaCalendarAlt,
+  },
+  {
+    title: "Industriel",
+    desc: "Marquage technique, sécurité et identification haute tenue.",
+    image: "dtf.jpg",
+    icon: FaIndustry,
+  },
+  {
+    title: "Premium",
+    desc: "Effets métalliques, vernis sélectif et finitions haut de gamme pour vos marques.",
+    image: "embossed.png",
+    icon: FaStar,
+  },
+];
+
+const solutionTrust = [
+  { label: "Qualité d'impression HD", icon: FaCrosshairs },
+  { label: "Large choix de matières et finitions", icon: FaLayerGroup },
+  { label: "Découpe de précision", icon: FaCut },
+  { label: "Livraison rapide partout au Maroc", icon: FaTruck },
+];
+
+const techCards = [
+  {
+    title: "Impression UV",
+    icon: FaSun,
+    points: ["Couleurs HD ultra-nettes", "Blanc & vernis sélectif", "Résistance UV & rayures"],
+    image: "hero-printer.jpg",
+  },
+  {
+    title: "Éco-solvant",
+    icon: FaLeaf,
+    points: ["Durabilité extérieur", "Couleurs naturelles", "Idéal véhicules & grands formats"],
+    image: "benefit-2.png",
+  },
+];
+
+const configSteps = [
+  { label: "Type de sticker", icon: FaTag },
+  { label: "Matière", icon: FaLayerGroup },
+  { label: "Finition", icon: FaStar },
+  { label: "Dimensions", icon: FaExpand },
+  { label: "Quantité", icon: FaCog },
+  { label: "Découpe", icon: FaCut },
+];
+
 function LogoMark({ className = "", light = false }) {
+  const src = light ? "/assets/logo-white.png" : "/assets/logo-black.png";
   return (
-    <a className={`logo ${light ? "logo--light" : ""} ${className}`} href="#top" aria-label="Stick'Art — Accueil">
-      <span className="logo-mark" aria-hidden="true" />
-      <span className="logo-text">
-        <strong>
-          STICK<span className="logo-accent">'</span>ART
-        </strong>
-        <em>Vos idées prennent vie</em>
-      </span>
-    </a>
+    <AppLink className={`logo ${light ? "logo--light" : ""} ${className}`} href="/" aria-label="Stick'Art — Accueil">
+      <img className="logo-img" src={src} alt="Stick'Arts by Comstore" />
+    </AppLink>
   );
 }
 
-function Header({ cartOpen, setCartOpen }) {
+function Header({ cartOpen, setCartOpen, path }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     document.body.classList.toggle("locked", mobileOpen || cartOpen);
     return () => document.body.classList.remove("locked");
   }, [mobileOpen, cartOpen]);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [path]);
 
   return (
     <>
@@ -159,9 +371,9 @@ function Header({ cartOpen, setCartOpen }) {
         <LogoMark />
         <nav className="desktop-nav" aria-label="Navigation principale">
           {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className={link.active ? "is-active" : undefined}>
+            <AppLink key={link.label} href={link.href} className={isNavActive(link.href, path) ? "is-active" : undefined}>
               {link.label}
-            </a>
+            </AppLink>
           ))}
         </nav>
         <div className="header-actions">
@@ -188,9 +400,14 @@ function Header({ cartOpen, setCartOpen }) {
         </button>
         <LogoMark />
         {navLinks.map((link) => (
-          <a key={link.label} href={link.href} onClick={() => setMobileOpen(false)}>
+          <AppLink
+            key={link.label}
+            href={link.href}
+            className={isNavActive(link.href, path) ? "is-active" : undefined}
+            onClick={() => setMobileOpen(false)}
+          >
             {link.label}
-          </a>
+          </AppLink>
         ))}
       </aside>
     </>
@@ -295,15 +512,17 @@ function Stars() {
   );
 }
 
-function Solutions() {
+function Solutions({ showHead = true }) {
   return (
     <section className="solutions" id="solutions">
-      <div className="section-head">
-        <div>
-          <h2>Nos solutions</h2>
-          <p>Des stickers pour tous vos projets</p>
+      {showHead && (
+        <div className="section-head">
+          <div>
+            <h2>Nos solutions</h2>
+            <p>Des stickers pour tous vos projets</p>
+          </div>
         </div>
-      </div>
+      )}
       <div className="solution-grid">
         {solutions.map((item, i) => (
           <article
@@ -317,13 +536,325 @@ function Solutions() {
               <img src={`${A}${item.image}`} alt={item.name} />
             </div>
             <Stars />
-            <a className="shop-btn" href="#configurer">
+            <AppLink className="shop-btn" href="/#configurer">
               Shop now
-            </a>
+            </AppLink>
           </article>
         ))}
       </div>
     </section>
+  );
+}
+
+function SolutionsPage() {
+  return (
+    <main className="page page-solutions">
+      <section className="sol-hero">
+        <div className="sol-hero-media" aria-hidden="true">
+          <img className="sol-hero-bg" src={`${A}hero-printer.jpg`} alt="" />
+          <div className="sol-hero-shade" />
+        </div>
+        <div className="sol-hero-inner">
+          <div className="sol-hero-copy">
+            <p className="sol-kicker">Nos solutions</p>
+            <h1>
+              Des stickers pour chaque <em>besoin</em>
+            </h1>
+            <p className="sol-hero-lead">
+              Entreprises, commerçants, créateurs ou particuliers : nous imprimons vos stickers en haute définition
+              avec des finitions professionnelles adaptées à chaque usage.
+            </p>
+            <a className="btn btn-primary sol-hero-cta" href="#usage">
+              Découvrir toutes nos solutions <FaArrowRight aria-hidden="true" />
+            </a>
+          </div>
+          <p className="sol-hero-aside" aria-hidden="true">
+            Votre idée, notre expertise, le bon sticker&nbsp;!
+          </p>
+        </div>
+      </section>
+
+      <section className="sol-trust" aria-label="Points forts">
+        <ul>
+          {solutionTrust.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.label}>
+                <Icon aria-hidden="true" />
+                <span>{item.label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="sol-usage" id="usage">
+        <div className="sol-section-head">
+          <h2>Nos solutions par usage</h2>
+          <p>Trouvez le sticker qui correspond parfaitement à votre projet.</p>
+        </div>
+        <div className="usage-grid">
+          {usageSolutions.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article className="usage-card" key={item.title}>
+                <div className="usage-card-media">
+                  <img src={`${A}${item.image}`} alt="" />
+                  <span className="usage-card-icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                </div>
+                <div className="usage-card-body">
+                  <h3>{item.title}</h3>
+                  <p>{item.desc}</p>
+                  <AppLink className="usage-card-link" href="/#configurer">
+                    Découvrir <FaArrowRight aria-hidden="true" />
+                  </AppLink>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="sol-tech" id="technologies">
+        <div className="sol-tech-intro">
+          <p className="sol-kicker sol-kicker--on-dark">Nos technologies</p>
+          <h2>
+            UV ou Éco-solvant&nbsp;?
+            <br />
+            On vous guide&nbsp;!
+          </h2>
+          <p>
+            Deux technologies d&apos;impression performantes pour des rendus nets et durables. Choisissez celle qui
+            correspond le mieux à votre projet.
+          </p>
+          <a className="btn btn-outline-gold" href="#technologies">
+            Comparer les technologies <FaArrowRight aria-hidden="true" />
+          </a>
+        </div>
+        <div className="sol-tech-cards">
+          {techCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <article className="tech-compare-card" key={card.title}>
+                <div className="tech-compare-head">
+                  <span className="tech-compare-icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                  <h3>{card.title}</h3>
+                </div>
+                <ul>
+                  {card.points.map((point) => (
+                    <li key={point}>
+                      <FaCheck aria-hidden="true" />
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="tech-compare-media">
+                  <img src={`${A}${card.image}`} alt="" />
+                </div>
+                <AppLink className="tech-compare-link" href="/#techno">
+                  En savoir plus <FaArrowRight aria-hidden="true" />
+                </AppLink>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="sol-finitions" id="sol-finitions">
+        <div className="sol-section-head sol-section-head--left">
+          <h2>Nos finitions</h2>
+          <p>Donnez plus de caractère à vos stickers</p>
+        </div>
+        <div className="sol-finitions-layout">
+          <ul className="sol-finish-rail">
+            {finishes.map((f) => (
+              <li key={f.name}>
+                <span className={`finish-swatch finish-swatch--${f.tone}`} aria-hidden="true" />
+                <strong>{f.name}</strong>
+              </li>
+            ))}
+          </ul>
+          <aside className="sol-finish-cta">
+            <img src={`${A}hero-stamp.png`} alt="" />
+            <div className="sol-finish-cta-copy">
+              <h3>Des finitions qui font la différence&nbsp;!</h3>
+              <AppLink className="btn btn-outline-light" href="/matieres-finitions">
+                Voir toutes les finitions <FaArrowRight aria-hidden="true" />
+              </AppLink>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="sol-config">
+        <div className="sol-config-copy">
+          <h2>Configurez votre sticker en quelques clics</h2>
+          <p>Type, matière, finition, dimensions, quantité et découpe — le prix s&apos;affiche en temps réel.</p>
+          <AppLink className="btn btn-dark sol-config-btn" href="/#configurer">
+            Lancer le configurateur <FaArrowRight aria-hidden="true" />
+          </AppLink>
+        </div>
+        <ol className="sol-config-steps">
+          {configSteps.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <li key={step.label}>
+                <span className="sol-step-icon" aria-hidden="true">
+                  <Icon />
+                </span>
+                <span className="sol-step-num">{i + 1}</span>
+                <span className="sol-step-label">{step.label}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    </main>
+  );
+}
+
+function MatieresFinitionsPage() {
+  return (
+    <main className="page page-solutions page-matieres">
+      <section className="sol-hero">
+        <div className="sol-hero-media" aria-hidden="true">
+          <img className="sol-hero-bg" src={`${A}hero-printer.jpg`} alt="" />
+          <div className="sol-hero-shade" />
+        </div>
+        <div className="sol-hero-inner">
+          <div className="sol-hero-copy">
+            <p className="sol-kicker">Matières &amp; Finitions</p>
+            <h1>
+              Donnez du <em>caractère</em> à vos stickers
+            </h1>
+            <p className="sol-hero-lead">
+              Choisissez la matière, l&apos;aspect et la finition qui correspondent à votre marque, à votre support et à
+              l&apos;environnement d&apos;utilisation.
+            </p>
+            <a className="btn btn-primary sol-hero-cta" href="#matieres">
+              Découvrir nos matières <FaArrowRight aria-hidden="true" />
+            </a>
+          </div>
+          <p className="sol-hero-aside" aria-hidden="true">
+            Matière + finition.
+            <br />
+            Le bon choix pour le bon usage.
+          </p>
+        </div>
+      </section>
+
+      <section className="sol-trust" aria-label="Points forts">
+        <ul>
+          {matieresTrust.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.label}>
+                <Icon aria-hidden="true" />
+                <span>{item.label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="sol-usage mf-matieres" id="matieres">
+        <div className="sol-section-head">
+          <h2>Nos matières</h2>
+          <p>Des supports adaptés à chaque projet</p>
+        </div>
+        <div className="usage-grid mf-matieres-grid">
+          {materials.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article className="usage-card" key={item.name}>
+                <div className="usage-card-media">
+                  <img src={`${A}${item.image}`} alt="" />
+                  <span className="usage-card-icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                </div>
+                <div className="usage-card-body">
+                  <h3>{item.name}</h3>
+                  <p>{item.traits}</p>
+                  <p className="mf-matiere-ideal">{item.ideal}</p>
+                  <AppLink className="usage-card-link" href="/#configurer">
+                    Choisir <FaArrowRight aria-hidden="true" />
+                  </AppLink>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="sol-finitions" id="page-finitions">
+        <div className="sol-section-head sol-section-head--left">
+          <h2>Nos finitions</h2>
+          <p>Le détail qui fait la différence</p>
+        </div>
+        <div className="sol-finitions-layout">
+          <ul className="sol-finish-rail mf-finish-rail">
+            {pageFinishes.map((f) => (
+              <li key={f.name}>
+                <span className={`finish-swatch finish-swatch--${f.tone}`} aria-hidden="true" />
+                <strong>{f.name}</strong>
+              </li>
+            ))}
+          </ul>
+          <aside className="sol-finish-cta">
+            <img src={`${A}embossed.png`} alt="" />
+            <div className="sol-finish-cta-copy">
+              <h3>Des finitions qui font la différence&nbsp;!</h3>
+              <AppLink className="btn btn-outline-light" href="/#configurer">
+                Configurer mon sticker <FaArrowRight aria-hidden="true" />
+              </AppLink>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="sol-config">
+        <div className="sol-config-copy">
+          <h2>Besoin d&apos;aide pour choisir&nbsp;?</h2>
+          <p>
+            Indiquez votre usage, votre support et votre quantité&nbsp;: nous vous orientons vers la bonne combinaison.
+          </p>
+          <AppLink className="btn btn-dark sol-config-btn" href="/#configurer">
+            Configurer mon sticker <FaArrowRight aria-hidden="true" />
+          </AppLink>
+        </div>
+        <ol className="sol-config-steps">
+          {configSteps.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <li key={step.label}>
+                <span className="sol-step-icon" aria-hidden="true">
+                  <Icon />
+                </span>
+                <span className="sol-step-num">{i + 1}</span>
+                <span className="sol-step-label">{step.label}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    </main>
+  );
+}
+
+function HomePage() {
+  return (
+    <main>
+      <Hero />
+      <Solutions />
+      <Finitions />
+      <Besoins />
+      <Techno />
+    </main>
   );
 }
 
@@ -465,39 +996,45 @@ function Footer() {
   return (
     <footer id="footer">
       <section className="prefooter" id="contact">
-        <div>
-          <FaHandHoldingHeart aria-hidden="true" />
+        <article className="prefooter-item">
+          <span className="prefooter-icon" aria-hidden="true">
+            <FaLeaf />
+          </span>
           <div>
             <strong>Qualité &amp; savoir-faire</strong>
-            <span>Impression pro Roland &amp; Mimaki</span>
+            <p>Une équipe passionnée à votre service pour un résultat à la hauteur de vos attentes.</p>
           </div>
-        </div>
-        <div>
-          <FaTruck aria-hidden="true" />
+        </article>
+        <article className="prefooter-item">
+          <span className="prefooter-icon" aria-hidden="true">
+            <FaTruck />
+          </span>
           <div>
             <strong>Livraison rapide</strong>
-            <span>Partout au Maroc</span>
+            <p>Partout au Maroc, en toute sécurité.</p>
           </div>
-        </div>
-        <div className="prefooter-cta">
-          <FaPhoneAlt aria-hidden="true" />
+        </article>
+        <article className="prefooter-item prefooter-item--cta">
+          <span className="prefooter-icon" aria-hidden="true">
+            <FaCommentDots />
+          </span>
           <div>
             <strong>Besoin d&apos;un conseil&nbsp;?</strong>
-            <span>Notre équipe vous répond</span>
+            <p>Contactez-nous, nous vous accompagnons dans votre projet.</p>
+            <a className="btn btn-ghost prefooter-btn" href="tel:+212612345678">
+              Nous contacter <FaArrowRight aria-hidden="true" />
+            </a>
           </div>
-          <a className="btn btn-primary" href="tel:+212612345678">
-            Nous contacter <FaArrowRight aria-hidden="true" />
-          </a>
-        </div>
+        </article>
       </section>
 
       <div className="footer-main">
-        <LogoMark light />
-        <nav aria-label="Pied de page">
+        <LogoMark light className="footer-brand" />
+        <nav className="footer-nav" aria-label="Pied de page">
           {navLinks.map((link) => (
-            <a key={link.label} href={link.href}>
+            <AppLink key={link.label} href={link.href}>
               {link.label}
-            </a>
+            </AppLink>
           ))}
         </nav>
         <div className="socials">
@@ -521,9 +1058,11 @@ function Footer() {
 
       <div className="legal">
         <span>© 2026 Stick&apos;Art. Tous droits réservés.</span>
-        <span>
-          <a href="#footer">Mentions légales</a> · <a href="#footer">CGV</a> · <a href="#footer">Confidentialité</a>
-        </span>
+        <nav className="legal-nav" aria-label="Informations légales">
+          <a href="#footer">Mentions légales</a>
+          <a href="#footer">CGV</a>
+          <a href="#footer">Politique de confidentialité</a>
+        </nav>
       </div>
     </footer>
   );
@@ -531,17 +1070,33 @@ function Footer() {
 
 export function App() {
   const [cartOpen, setCartOpen] = useState(false);
+  const path = usePath();
+
+  const page =
+    path === "/solutions" ? "solutions" : path === "/matieres-finitions" ? "matieres" : "home";
+
+  useEffect(() => {
+    document.title =
+      page === "solutions"
+        ? "Nos solutions | Stick'Art"
+        : page === "matieres"
+          ? "Matières & Finitions | Stick'Art"
+          : "Stick'Art | Stickers personnalisés professionnels";
+
+    const hash = window.location.hash.slice(1);
+    if (path === "/" && hash) {
+      requestAnimationFrame(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+      });
+      return;
+    }
+    window.scrollTo(0, 0);
+  }, [path, page]);
 
   return (
     <>
-      <Header cartOpen={cartOpen} setCartOpen={setCartOpen} />
-      <main>
-        <Hero />
-        <Solutions />
-        <Finitions />
-        <Besoins />
-        <Techno />
-      </main>
+      <Header cartOpen={cartOpen} setCartOpen={setCartOpen} path={path} />
+      {page === "solutions" ? <SolutionsPage /> : page === "matieres" ? <MatieresFinitionsPage /> : <HomePage />}
       <Footer />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </>
