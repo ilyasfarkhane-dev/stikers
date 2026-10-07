@@ -1,4 +1,4 @@
-/node_modules
+node_modules/
 /dist
 /build
 /dist.zip
@@ -9,3 +9,7 @@
 /dist.tar.lz
 /dist.tar.lzip
 /dist.tar.lzip
+.env
+/backend/.data
+/frontend/public/assets/images/imges/
+/.wrangler
