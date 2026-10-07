@@ -1,5 +1,5 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -12,12 +12,16 @@ function sitesDevApi() {
     name: "sites-dev-api",
     apply: "serve",
     async configureServer(server) {
-      const { createBackendEnv } = await import("../backend/node-env.mjs");
-      const { sendJsonError, sendWebResponse, toWebRequest } = await import("../backend/node-http.mjs");
-      const backend = await createBackendEnv().catch((error) => {
-        server.config.logger.warn(`[sites-dev-api] Backend unavailable: ${error.message}`);
-        return { env: {}, summary: "Database: unavailable" };
-      });
+      // Loaded at runtime (not bundled with this config) so backend packages resolve from backend/node_modules.
+      const backendModule = (file) => import(pathToFileURL(path.join(projectRoot, "backend", file)).href);
+      const { sendJsonError, sendWebResponse, toWebRequest } = await backendModule("node-http.mjs");
+      const backend = await backendModule("node-env.mjs")
+        .then(({ createBackendEnv }) => createBackendEnv())
+        .catch((error) => {
+          const hint = error?.code === "ERR_MODULE_NOT_FOUND" ? " — run `npm install` in backend/" : "";
+          server.config.logger.warn(`[sites-dev-api] Backend unavailable: ${error.message}${hint}`);
+          return { env: {}, summary: "Database: unavailable" };
+        });
       server.config.logger.info(backend.summary.replace(/^/gm, "[sites-dev-api] "));
       const apiEntry = path.join(projectRoot, "backend", "api.js");
 
